@@ -1,5 +1,4 @@
 import logging
-import time
 
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
@@ -40,23 +39,21 @@ async def get_devices_list(
         return {"success": False, "detail": 'Data not found'}
 
 
-# @router.post('/measurements')
-# def set_measurements(
-#         access_token: constr(strip_whitespace=True, to_upper=True, min_length=1),
-#         temperature: float,
-#         humidity: float
-# ):
-#     if access_token != settings.ACCESS_TOKEN:
-#         raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
-#
-#     db.session.add(
-#         Measurements(
-#             unix_id=int(time.time()),
-#             device_id='1',
-#             temperature=temperature,
-#             humidity=humidity
-#         )
-#     )
-#     db.session.flush()
-#     db.session.commit()
-#     return {"success": True}
+@router.post('/device')
+def add_device(
+        access_token: constr(strip_whitespace=True, to_upper=True, min_length=1),
+        device_id: constr(strip_whitespace=True, min_length=1)
+):
+    if access_token != settings.ACCESS_TOKEN:
+        raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+
+    devices: Devices = db.session.query(Devices)
+
+    device_exist: Devices = (devices.filter(Devices.device_id == device_id)).one_or_none()
+    if device_exist:
+        return {"success": False, "detail": 'Device already exist'}
+    else:
+        db.session.add(Devices(device_id=device_id))
+        db.session.flush()
+        db.session.commit()
+        return {"success": True}
