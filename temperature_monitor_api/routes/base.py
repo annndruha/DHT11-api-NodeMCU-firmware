@@ -5,7 +5,7 @@ from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import FileResponse
 
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
