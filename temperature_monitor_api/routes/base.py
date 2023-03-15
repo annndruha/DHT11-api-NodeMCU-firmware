@@ -1,21 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.routes.measurements import router as measurements_router
 from temperature_monitor_api.routes.devices import router as devices_router
 
+
 settings = get_settings()
+
 app = FastAPI(
     title='temperature-monitor-api',
     description='temperature-monitor-api',
     version=__version__,
-
-    # Отключаем нелокальную документацию
-    root_path=settings.ROOT_PATH if __version__ != 'dev' else '/',
-    docs_url=None if __version__ != 'dev' else '/docs',
+    root_path='/',
+    docs_url='/docs',
     redoc_url=None,
 )
 
