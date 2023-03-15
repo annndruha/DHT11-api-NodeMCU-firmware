@@ -40,13 +40,13 @@ app.add_middleware(
 app.include_router(measurements_router, prefix='', tags=['measurements'])
 app.include_router(devices_router, prefix='', tags=['devices'])
 
+parent_dir_path = os.path.dirname(os.path.realpath(__file__))
+print('WORKDIR', parent_dir_path)
+
 
 @app.get("/")
 def serve_home(request: Request):
-    return FileResponse("../../static/index.html")
+    return FileResponse("static/index.html")
 
 
-app.mount('/static', StaticFiles(directory='../../static', html=True), 'static')
-
-parent_dir_path = os.path.dirname(os.path.realpath(__file__))
-print('WORKDIR', parent_dir_path)
+app.mount('/static', StaticFiles(directory='static', html=True), 'static')
