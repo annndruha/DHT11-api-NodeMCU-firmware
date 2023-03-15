@@ -5,6 +5,7 @@ from fastapi_sqlalchemy import DBSessionMiddleware
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.routes.measurements import router as measurements_router
+from temperature_monitor_api.routes.devices import router as devices_router
 
 settings = get_settings()
 app = FastAPI(
@@ -34,3 +35,4 @@ app.add_middleware(
 )
 
 app.include_router(measurements_router, prefix='', tags=['measurements'])
+app.include_router(devices_router, prefix='', tags=['devices'])

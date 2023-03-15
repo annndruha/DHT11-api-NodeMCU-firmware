@@ -1,27 +1,19 @@
 import logging
 import time
-import datetime
-from typing import List, Optional
 
-from auth_lib.fastapi import UnionAuth
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from fastapi_sqlalchemy import db
 from pydantic import constr
-from sqlalchemy import and_, func, or_
-from sqlalchemy import inspect
+
 
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.models.base import Measurements
+from temperature_monitor_api.utils.utils import object_as_dict
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 settings = get_settings()
-
-
-def object_as_dict(obj):
-    return {c.key: getattr(obj, c.key)
-            for c in inspect(obj).mapper.column_attrs}
 
 
 @router.get(

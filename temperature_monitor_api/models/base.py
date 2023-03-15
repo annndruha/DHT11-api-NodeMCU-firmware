@@ -1,9 +1,9 @@
 import re
 
 import sqlalchemy
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 
 @as_declarative()
@@ -23,6 +23,11 @@ class Base:
         for c in self.__table__.columns:
             attrs.append(f"{c.name}={getattr(self, c.name)}")
         return "{}({})".format(self.__class__.__name__, ', '.join(attrs))
+
+
+class Devices(Base):
+    device_id = mapped_column(sqlalchemy.String, primary_key=True)
+    created_date = mapped_column(sqlalchemy.DateTime(timezone=True), server_default=func.now())
 
 
 class Measurements(Base):
