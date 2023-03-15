@@ -83,6 +83,7 @@ jobs:
           docker run \
             --detach \
             --restart always \
+            --expose 80 \
             --env DB_DSN='${{ secrets.DB_DSN }}' \
             --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
             --env GUNICORN_CMD_ARGS='--log-config  logging_prod.conf' \
