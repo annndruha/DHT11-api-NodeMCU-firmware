@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     DB_DSN: PostgresDsn
     ROOT_PATH: str = '/' + os.getenv("APP_NAME", "")
+    ACCESS_TOKEN: str
 
     CORS_ALLOW_ORIGINS: list[str] = ['*']
     CORS_ALLOW_CREDENTIALS: bool = True

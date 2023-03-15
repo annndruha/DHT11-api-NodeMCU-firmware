@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware
+
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
+from temperature_monitor_api.routes.measurements import router as measurements_router
 
 settings = get_settings()
 app = FastAPI(
@@ -30,3 +32,5 @@ app.add_middleware(
     allow_methods=settings.CORS_ALLOW_METHODS,
     allow_headers=settings.CORS_ALLOW_HEADERS,
 )
+
+app.include_router(measurements_router, prefix='', tags=['measurements'])
