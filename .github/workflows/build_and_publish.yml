@@ -69,6 +69,8 @@ jobs:
         run: |
           docker run \
             --rm \
+            --expose=8080 \
+            --publish 8080:80 \
             --env DB_DSN=${{ secrets.DB_DSN }} \
             --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
             --name ${{ env.CONTAITER_NAME }}_migration \
@@ -83,6 +85,7 @@ jobs:
           docker run \
             --detach \
             --restart always \
+            --expose=8080 \
             --publish 8080:80 \
             --env DB_DSN='${{ secrets.DB_DSN }}' \
             --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
