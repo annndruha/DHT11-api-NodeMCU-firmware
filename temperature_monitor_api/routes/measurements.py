@@ -1,5 +1,6 @@
 import logging
 import time
+import datetime
 from typing import List, Optional
 
 from auth_lib.fastapi import UnionAuth
@@ -10,6 +11,7 @@ from pydantic import constr
 from sqlalchemy import and_, func, or_
 
 from temperature_monitor_api.settings import get_settings
+from temperature_monitor_api.models.base import Measurements
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -46,6 +48,17 @@ def set_measurements(
 ):
     if access_token != settings.ACCESS_TOKEN:
         raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+
+    db.session.add(
+            Measurements(
+                unix_id=int(time.time()),
+                device_id='1',
+                temperature=temperature,
+                humidity=humidity
+            )
+        )
+    db.session.flush()
+    db.session.commit()
 
     test_measurements.append((time.time(),
                               temperature,

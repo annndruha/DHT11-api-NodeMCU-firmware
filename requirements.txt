@@ -5,6 +5,7 @@ pydantic[dotenv]
 uvicorn
 alembic
 SQLAlchemy
+sqlalchemy-stubs
 gunicorn
 logging-profcomff
 auth-lib-profcomff[fastapi]

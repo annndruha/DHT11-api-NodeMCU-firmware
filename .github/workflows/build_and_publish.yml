@@ -69,7 +69,8 @@ jobs:
         run: |
           docker run \
             --rm \
-            --env DB_DSN=${{ secrets.DB_DSN }} \
+            --env DB_DSN=${{ secrets.DB_DSN }}
+            --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
             --name ${{ env.CONTAITER_NAME }}_migration \
             --workdir="/" \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
@@ -83,7 +84,7 @@ jobs:
             --detach \
             --restart always \
             --env DB_DSN='${{ secrets.DB_DSN }}' \
+            --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
             --env GUNICORN_CMD_ARGS='--log-config  logging_prod.conf' \
-            --env STATIC_PATH=static \
             --name ${{ env.CONTAITER_NAME }} \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
