@@ -38,9 +38,9 @@ app.add_middleware(
 
 @app.get("/")
 def serve_home(request: Request):
-    return FileResponse("static/index.html")
+    return FileResponse("./static/index.html")
 
 
 app.include_router(measurements_router, prefix='', tags=['measurements'])
 app.include_router(devices_router, prefix='', tags=['devices'])
-app.mount('/static', StaticFiles(directory='static', html=True), 'static')
+app.mount('/static', StaticFiles(directory='./static', html=True), 'static')
