@@ -2,13 +2,11 @@ import logging
 import time
 
 from fastapi import APIRouter
-from fastapi.exceptions import HTTPException
 from fastapi_sqlalchemy import db
 from pydantic import constr
 
-
 from temperature_monitor_api.settings import get_settings
-from temperature_monitor_api.models.base import Measurements
+from temperature_monitor_api.models.base import Devices, Measurements
 from temperature_monitor_api.utils.utils import object_as_dict
 
 logger = logging.getLogger(__name__)
@@ -27,7 +25,7 @@ async def get_measurements(
         access_token: constr(strip_whitespace=True, to_upper=True, min_length=1)
 ):
     if access_token != settings.ACCESS_TOKEN:
-        raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+        return {"success": False, "detail": 'Unauthorized. Given access_token not accepted'}
 
     measurements: Measurements = db.session.query(Measurements)
 
@@ -42,18 +40,12 @@ async def get_measurements(
         return {"success": False, "detail": 'Data not found'}
 
 
-@router.get(
-    '/measurements_flat',
-    status_code=200,
-    responses={
-        404: {'detail': 'Data not found'},
-    },
-)
+@router.get('/measurements_flat')
 async def get_measurements_flat(
         access_token: constr(strip_whitespace=True, to_upper=True, min_length=1)
 ):
     if access_token != settings.ACCESS_TOKEN:
-        raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+        return {"success": False, "detail": 'Unauthorized. Given access_token not accepted'}
 
     measurements: Measurements = db.session.query(Measurements)
 
@@ -75,17 +67,18 @@ async def get_measurements_flat(
 
 @router.post('/measurements')
 def set_measurements(
-        access_token: constr(strip_whitespace=True, to_upper=True, min_length=1),
+        device_id: constr(strip_whitespace=True, min_length=1),
         temperature: float,
         humidity: float
 ):
-    if access_token != settings.ACCESS_TOKEN:
-        raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+    device_exist: Devices = (db.session.query(Devices).filter(Devices.device_id == device_id)).one_or_none()
+    if not device_exist:
+        return {"success": False, "detail": 'Device not registered. Do POST /device first'}
 
     db.session.add(
         Measurements(
             unix_id=int(time.time()),
-            device_id='1',
+            device_id=device_id,
             temperature=temperature,
             humidity=humidity
         )

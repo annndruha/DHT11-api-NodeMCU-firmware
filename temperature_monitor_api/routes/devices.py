@@ -1,7 +1,6 @@
 import logging
 
 from fastapi import APIRouter
-from fastapi.exceptions import HTTPException
 from fastapi_sqlalchemy import db
 from pydantic import constr
 
@@ -14,18 +13,12 @@ router = APIRouter()
 settings = get_settings()
 
 
-@router.get(
-    '/devices',
-    status_code=200,
-    responses={
-        404: {'detail': 'Data not found'},
-    },
-)
+@router.get('/devices')
 async def get_devices_list(
         access_token: constr(strip_whitespace=True, to_upper=True, min_length=1)
 ):
     if access_token != settings.ACCESS_TOKEN:
-        raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+        return {"success": False, "detail": 'Unauthorized. Given access_token not accepted'}
 
     devices: Devices = db.session.query(Devices)
 
@@ -45,7 +38,7 @@ def add_device(
         device_id: constr(strip_whitespace=True, min_length=1)
 ):
     if access_token != settings.ACCESS_TOKEN:
-        raise HTTPException(401, 'Unauthorized. Given access_token not accepted')
+        return {"success": False, "detail": 'Unauthorized. Given access_token not accepted'}
 
     devices: Devices = db.session.query(Devices)
 
