@@ -1,13 +1,14 @@
 from fastapi import FastAPI
+from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, FileResponse
 
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.routes.measurements import router as measurements_router
 from temperature_monitor_api.routes.devices import router as devices_router
-
 
 settings = get_settings()
 
@@ -19,7 +20,6 @@ app = FastAPI(
     docs_url='/docs',
     redoc_url=None,
 )
-
 
 app.add_middleware(
     DBSessionMiddleware,
@@ -35,5 +35,12 @@ app.add_middleware(
     allow_headers=settings.CORS_ALLOW_HEADERS,
 )
 
+
+@app.get("/")
+def serve_home(request: Request):
+    return FileResponse("static/index.html")
+
+
 app.include_router(measurements_router, prefix='', tags=['measurements'])
 app.include_router(devices_router, prefix='', tags=['devices'])
+app.mount('/static', StaticFiles(directory='static', html=True), 'static')
