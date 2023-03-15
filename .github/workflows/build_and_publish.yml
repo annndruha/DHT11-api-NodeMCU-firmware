@@ -69,7 +69,7 @@ jobs:
         run: |
           docker run \
             --rm \
-            --env DB_DSN=${{ secrets.DB_DSN }}
+            --env DB_DSN=${{ secrets.DB_DSN }} \
             --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
             --name ${{ env.CONTAITER_NAME }}_migration \
             --workdir="/" \
