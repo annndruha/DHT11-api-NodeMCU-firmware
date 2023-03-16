@@ -37,6 +37,7 @@ app.add_middleware(
     allow_headers=settings.CORS_ALLOW_HEADERS,
 )
 
+
 app.include_router(measurements_router, prefix='', tags=['measurements'])
 app.include_router(devices_router, prefix='', tags=['devices'])
 
