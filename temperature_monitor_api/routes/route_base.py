@@ -9,8 +9,8 @@ from fastapi.responses import FileResponse
 
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
-from temperature_monitor_api.routes.measurements import router as measurements_router
-from temperature_monitor_api.routes.devices import router as devices_router
+from temperature_monitor_api.routes.route_measurements import router as measurements_router
+from temperature_monitor_api.routes.route_devices import router as devices_router
 
 settings = get_settings()
 
@@ -45,7 +45,7 @@ parent_dir_path = os.path.dirname(os.path.realpath(__file__))
 print('WORKDIR', parent_dir_path)
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def serve_home(request: Request):
     return FileResponse("static/index.html")
 

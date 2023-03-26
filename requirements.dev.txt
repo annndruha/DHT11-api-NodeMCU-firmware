@@ -1,5 +1,0 @@
-black
-httpx
-pytest
-pytest-cov
-pytest-mock

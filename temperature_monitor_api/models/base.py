@@ -26,13 +26,15 @@ class Base:
 
 
 class Devices(Base):
-    device_id = mapped_column(sqlalchemy.String, primary_key=True)
-    created_date = mapped_column(sqlalchemy.DateTime(timezone=True), server_default=func.now())
+    device_id = mapped_column(sqlalchemy.Integer, primary_key=True)
+    device_name = mapped_column(sqlalchemy.String, nullable=False)
+    device_token = mapped_column(sqlalchemy.String, nullable=False)
+    created_date = mapped_column(sqlalchemy.DateTime(), server_default=func.now())
 
 
 class Measurements(Base):
-    unix_id = mapped_column(sqlalchemy.Integer, primary_key=True)
-    timestamp = mapped_column(sqlalchemy.DateTime(timezone=True), server_default=func.now())
-    device_id = mapped_column(sqlalchemy.String, nullable=False)
+    primary_key = mapped_column(sqlalchemy.BIGINT, primary_key=True)
+    timestamp = mapped_column(sqlalchemy.DateTime(), server_default=func.now())
+    device_id = mapped_column(sqlalchemy.Integer, sqlalchemy.ForeignKey(Devices.device_id), nullable=False)
     temperature: Mapped[float] = mapped_column(sqlalchemy.Float, nullable=False)
     humidity: Mapped[float] = mapped_column(sqlalchemy.Float, nullable=False)
