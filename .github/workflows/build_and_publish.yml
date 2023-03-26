@@ -70,7 +70,7 @@ jobs:
           docker run \
             --rm \
             --env DB_DSN=${{ secrets.DB_DSN }} \
-            --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
+            --env ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }} \
             --name ${{ env.CONTAITER_NAME }}_migration \
             --workdir="/" \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
@@ -85,6 +85,6 @@ jobs:
             --restart always \
             --network web \
             --env DB_DSN='${{ secrets.DB_DSN }}' \
-            --env ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
+            --env ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }} \
             --name ${{ env.CONTAITER_NAME }} \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
