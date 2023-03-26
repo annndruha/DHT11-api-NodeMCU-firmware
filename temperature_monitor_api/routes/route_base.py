@@ -46,7 +46,7 @@ print('WORKDIR', parent_dir_path)
 
 
 @app.get("/", include_in_schema=False)
-def serve_home(request: Request):
+def serve_home():
     return FileResponse("static/index.html")
 
 
