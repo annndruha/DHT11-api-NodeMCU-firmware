@@ -1,7 +1,6 @@
 import os
 
 from fastapi import FastAPI
-from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -9,8 +8,8 @@ from fastapi.responses import FileResponse
 
 from temperature_monitor_api import __version__
 from temperature_monitor_api.settings import get_settings
-from temperature_monitor_api.routes.route_measurements import router as measurements_router
-from temperature_monitor_api.routes.route_devices import router as devices_router
+from temperature_monitor_api.routes.measurements import router as measurements_router
+from temperature_monitor_api.routes.devices import router as devices_router
 
 settings = get_settings()
 
