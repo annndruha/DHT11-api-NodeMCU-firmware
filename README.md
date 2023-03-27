@@ -5,7 +5,7 @@ The purpose of the project is to collect data from a temperature and humidity se
 
 This repo contains only api server, which able to receive data from devices and manage them.
 
-![Picture]()
+![Work scheme](https://user-images.githubusercontent.com/51162917/227819225-0682b933-3776-4597-bf75-5f4ac84b7385.png)
 
 ## Setup
 
