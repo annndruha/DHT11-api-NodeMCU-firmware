@@ -1,7 +1,7 @@
 # Temperature monitor API
 
-This is pet project for study FastAPI and SQLAlchemy.
-The purpose of the project is to collect data from a temperature and humidity sensor (like DHT11) and write data to a database.
+This is a pet project for study FastAPI and SQLAlchemy.
+The goal of the project is to collect data from a temperature and humidity sensor (like DHT11) and write data to a database.
 Example: [api.annndruha.space](https://api.annndruha.space/)
 
 This repo contains **only api server**, which able to receive data from devices and manage them. (Colored at picture)

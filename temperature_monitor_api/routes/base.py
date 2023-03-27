@@ -15,7 +15,9 @@ settings = get_settings()
 
 app = FastAPI(
     title='temperature-monitor-api',
-    description='temperature-monitor-api',
+    description='Temperature monitor API - is a pet project for study FastAPI and SQLAlchemy. The goal of the '
+                'project is to collect data from a temperature and humidity sensor (like DHT11) and write data to a '
+                'database.',
     version=__version__,
     root_path='/',
     docs_url='/docs',

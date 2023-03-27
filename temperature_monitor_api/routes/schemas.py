@@ -5,12 +5,12 @@ from pydantic import constr, BaseModel
 
 
 # General Schemas
-class StrResponseSchema(BaseModel):
+class SuccessResponseSchema(BaseModel):
     detail: str = 'Some message'
 
 
 class ErrorResponseSchema(BaseModel):
-    detail: str = 'Some error explanation'
+    error: str = 'Some error explanation'
 
 
 # Device Schemas
