@@ -76,10 +76,10 @@ async def get_one_measurement(
     return object_as_dict(measurement)
 
 
-@router.get('/list_all_measurements',
+@router.get('/list_measurements',
             responses={200: {"model": ListMeasurementsSchema},
                        400: {"model": ErrorResponseSchema}})
-async def get_measurements_flat(
+async def list_measurements(
         admin_token: constr(strip_whitespace=True, to_upper=True, min_length=1),
         device_name: Optional[constr(strip_whitespace=True, min_length=3)] = None,
         device_token: Optional[str] = None
@@ -98,14 +98,15 @@ async def get_measurements_flat(
         return JSONResponse({"detail": 'Device with this name not existed'}, 400)
 
     measurements = db.session.query(Measurements).filter(Measurements.device_id == device.device_id)
-    data = measurements.all()
-    if len(data) == 0:
+    measurements = measurements.order_by(Measurements.timestamp.asc()).all()
+    if len(measurements) == 0:
         return JSONResponse({"detail": 'Measurements for this device is empty'}, 400)
 
     timestamps = []
     temperatures = []
     humiditys = []
-    for measurement in data:
+    for measurement in measurements:
+        timestamps.append(measurement.primary_key)
         timestamps.append(measurement.timestamp)
         temperatures.append(measurement.temperature)
         humiditys.append(measurement.humidity)
