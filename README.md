@@ -105,3 +105,5 @@ and if happens, the api recorded into database are two records: 1) last values o
 and humidity with new timestamp 2) new values with timestamp a few milliseconds later.
 
 Graphically it seems like that:
+
+<img alt="Measurment record format" width=600px src="https://user-images.githubusercontent.com/51162917/227822432-e171ecf1-9a7f-4c1a-aba2-f422f4b91017.png" />
