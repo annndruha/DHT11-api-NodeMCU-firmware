@@ -3,7 +3,7 @@
 This is pet project for study FastAPI and SQLAlchemy.
 The purpose of the project is to collect data from a temperature and humidity sensor (like DHT11) and write data to a database.
 
-This repo contains only api server, which able to receive data from devices and manage them.
+This repo contains **only api server**, which able to receive data from devices and manage them. (Colored at picture)
 
 ![Work scheme](https://user-images.githubusercontent.com/51162917/227819225-0682b933-3776-4597-bf75-5f4ac84b7385.png)
 
@@ -85,3 +85,23 @@ docker run \
     --name temperature_monitor_api \
     ghcr.io/annndruha/temperature-monitor-api:latest
 ```
+
+### Usage
+
+Almost any information about api you can file find in `/docs` section after server run.
+
+There are two important things that need to know:
+
+**Create device**
+
+For using api by some device, first is need to create device itself by `POST /create_device`.
+The api generate to you a *device_token*, which need to paste in every `POST /create_measurment` request from your device.
+
+**Measurment record format**
+
+For save disk space reason, not every measurement are recorded on a database.
+It's recorded only if temperature or humidity changes from previous record for this device,
+and if happens, the api recorded into database are two records: 1) last values of temp temperature 
+and humidity with new timestamp 2) new values with timestamp a few milliseconds later.
+
+Graphically it seems like that:
