@@ -57,7 +57,7 @@ jobs:
     environment:
       name: Production
     env:
-      CONTAITER_NAME: temperature_monitor_api
+      CONTAINER_NAME: temperature_monitor_api
     permissions:
       packages: read
 
@@ -71,7 +71,7 @@ jobs:
             --rm \
             --env DB_DSN=${{ secrets.DB_DSN }} \
             --env ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }} \
-            --name ${{ env.CONTAITER_NAME }}_migration \
+            --name ${{ env.CONTAINER_NAME }}_migration \
             --workdir="/" \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
             alembic upgrade head
@@ -79,12 +79,12 @@ jobs:
       - name: Run new version
         id: run_test
         run: |
-          docker stop ${{ env.CONTAITER_NAME }} || true && docker rm ${{ env.CONTAITER_NAME }} || true
+          docker stop ${{ env.CONTAINER_NAME }} || true && docker rm ${{ env.CONTAINER_NAME }} || true
           docker run \
             --detach \
             --restart always \
             --network web \
             --env DB_DSN='${{ secrets.DB_DSN }}' \
             --env ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }} \
-            --name ${{ env.CONTAITER_NAME }} \
+            --name ${{ env.CONTAINER_NAME }} \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
