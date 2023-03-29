@@ -30,7 +30,7 @@ On this step you need to remember or write down special environment variables
 ```dotenv
 DB_DSN=postgresql://temperature_monitor:passowrd@api_or_ip_address:5432/databasename
 ```
-* Generate any strong `ADMIN_TOKEN`. It will need to manage devices and get collented data
+* Generate any strong `ADMIN_TOKEN`. It will need to manage devices and get collected data
 ```dotenv
 ADMIN_TOKEN=JMUW191K57OC7C4Q7Y7Q
 ```
@@ -98,7 +98,7 @@ There are two important things that need to know:
 For using api by some device, first is need to create device itself by `POST /create_device`.
 The api generate to you a *device_token*, which need to paste in every `POST /create_measurment` request from your device.
 
-**Measurment record format**
+**Measurement record format**
 
 For save disk space reason, not every measurement are recorded on a database.
 It's recorded only if temperature or humidity changes from previous record for this device,
@@ -107,4 +107,4 @@ and humidity with new timestamp 2) new values with timestamp a few milliseconds 
 
 Graphically it seems like that:
 
-<img alt="Measurment record format" width=600px src="https://user-images.githubusercontent.com/51162917/227822432-e171ecf1-9a7f-4c1a-aba2-f422f4b91017.png" />
+<img alt="Measurement record format" width=600px src="https://user-images.githubusercontent.com/51162917/227822432-e171ecf1-9a7f-4c1a-aba2-f422f4b91017.png" />
