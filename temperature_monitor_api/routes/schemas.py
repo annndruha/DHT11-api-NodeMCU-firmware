@@ -13,6 +13,10 @@ class ErrorResponseSchema(BaseModel):
     error: str = 'Some error explanation'
 
 
+class ForbiddenSchema(BaseModel):
+    detail: str = 'Unauthorized. Given ADMIN_TOKEN not accepted'
+
+
 # Device Schemas
 class DeviceSchema(BaseModel):
     device_id: int = 42

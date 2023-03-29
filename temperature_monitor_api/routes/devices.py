@@ -2,14 +2,15 @@ import logging
 from typing import Optional
 
 from pydantic import constr
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi_sqlalchemy import db
 from fastapi.responses import JSONResponse
 
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.models.base import Devices, Measurements
 from temperature_monitor_api.utils.utils import object_as_dict, generate_serial_number
-from temperature_monitor_api.routes.schemas import SuccessResponseSchema, ErrorResponseSchema, \
+from temperature_monitor_api.routes.auth import AdminAuth
+from temperature_monitor_api.routes.schemas import SuccessResponseSchema, ErrorResponseSchema, ForbiddenSchema, \
     DeviceSchema, ListDevicesSchema
 
 logger = logging.getLogger(__name__)
@@ -17,18 +18,17 @@ router = APIRouter()
 settings = get_settings()
 
 
-@router.post('/create_device', responses={200: {"model": DeviceSchema}, 400: {"model": ErrorResponseSchema}})
+@router.post('/create_device', responses={200: {"model": DeviceSchema},
+                                          400: {"model": ErrorResponseSchema},
+                                          403: {"model": ForbiddenSchema}})
 async def create_new_device(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=10),
         device_name: constr(strip_whitespace=True, min_length=3),
-        device_predefined_token: Optional[str] = None
+        device_predefined_token: Optional[str] = None,
+        admin_token=Depends(AdminAuth())
 ):
     """
     Create a new device
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
-
     device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
     if device:
         return JSONResponse({"error": 'Device name already taken'}, 400)
@@ -43,17 +43,16 @@ async def create_new_device(
     return object_as_dict(device)
 
 
-@router.get('/get_device', responses={200: {"model": DeviceSchema}, 400: {"model": ErrorResponseSchema}})
+@router.get('/get_device', responses={200: {"model": DeviceSchema},
+                                      400: {"model": ErrorResponseSchema},
+                                      403: {"model": ForbiddenSchema}})
 async def get_specific_device(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=10),
-        device_name: constr(strip_whitespace=True, min_length=3)
+        device_name: constr(strip_whitespace=True, min_length=3),
+        admin_token=Depends(AdminAuth())
 ):
     """
     Get a specific device info
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
-
     device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
     if not device:
         return JSONResponse({"error": 'Device with this name not existed'}, 400)
@@ -61,16 +60,15 @@ async def get_specific_device(
     return object_as_dict(device)
 
 
-@router.get('/list_devices', responses={200: {"model": ListDevicesSchema}, 400: {"model": ErrorResponseSchema}})
+@router.get('/list_devices', responses={200: {"model": ListDevicesSchema},
+                                        400: {"model": ErrorResponseSchema},
+                                        403: {"model": ForbiddenSchema}})
 async def list_all_devices(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=10)
+        admin_token=Depends(AdminAuth())
 ):
     """
     Get a list of devices with name's, id's, tokens, creation date's
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
-
     devices: Devices = db.session.query(Devices)
     devices_list = [object_as_dict(device) for device in devices.all()]
 
@@ -80,19 +78,18 @@ async def list_all_devices(
     return {"devices": devices_list}
 
 
-@router.patch('/update_device', responses={200: {"model": DeviceSchema}, 400: {"model": ErrorResponseSchema}})
+@router.patch('/update_device', responses={200: {"model": DeviceSchema},
+                                           400: {"model": ErrorResponseSchema},
+                                           403: {"model": ForbiddenSchema}})
 async def update_specific_device(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=10),
         device_name: constr(strip_whitespace=True, min_length=3),
         new_device_name: Optional[constr(strip_whitespace=True, min_length=3)] = None,
-        new_device_token: Optional[str] = None
+        new_device_token: Optional[str] = None,
+        admin_token=Depends(AdminAuth())
 ):
     """
     Update device name and/or device token
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
-
     device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
     if not device:
         return JSONResponse({"error": 'Device with this name not existed'}, 400)
@@ -113,17 +110,16 @@ async def update_specific_device(
     return object_as_dict(device)
 
 
-@router.delete('/delete_device', responses={200: {"model": SuccessResponseSchema}, 400: {"model": ErrorResponseSchema}})
+@router.delete('/delete_device', responses={200: {"model": SuccessResponseSchema},
+                                            400: {"model": ErrorResponseSchema},
+                                            403: {"model": ForbiddenSchema}})
 async def delete_specific_device(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=10),
-        device_name: constr(strip_whitespace=True, min_length=3)
+        device_name: constr(strip_whitespace=True, min_length=3),
+        admin_token=Depends(AdminAuth())
 ):
     """
     Delete specific device and related measurements
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
-
     device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
     if not device:
         return JSONResponse({"error": 'Device with this name not existed'}, 400)

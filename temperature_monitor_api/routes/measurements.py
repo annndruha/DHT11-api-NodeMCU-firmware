@@ -2,14 +2,15 @@ import logging
 from typing import Optional
 
 from pydantic import constr
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi_sqlalchemy import db
 from fastapi.responses import JSONResponse
 
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.models.base import Devices, Measurements
 from temperature_monitor_api.utils.utils import object_as_dict
-from temperature_monitor_api.routes.schemas import SuccessResponseSchema, ErrorResponseSchema,\
+from temperature_monitor_api.routes.auth import AdminAuth
+from temperature_monitor_api.routes.schemas import SuccessResponseSchema, ErrorResponseSchema, ForbiddenSchema, \
     MeasurementSchema, ListMeasurementsSchema
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,8 @@ router = APIRouter()
 settings = get_settings()
 
 
-@router.post('/create_measurement', responses={200: {"model": SuccessResponseSchema}, 400: {"model": ErrorResponseSchema}})
+@router.post('/create_measurement', responses={200: {"model": SuccessResponseSchema},
+                                               400: {"model": ErrorResponseSchema}})
 def add_new_measurement(
         device_token: str,
         temperature: float,
@@ -58,17 +60,16 @@ def add_new_measurement(
     return {"detail": 'Added'}
 
 
-@router.get('/get_measurement', responses={200: {"model": MeasurementSchema}, 400: {"model": ErrorResponseSchema}})
+@router.get('/get_measurement', responses={200: {"model": MeasurementSchema},
+                                           400: {"model": ErrorResponseSchema},
+                                           403: {"model": ForbiddenSchema}})
 async def get_one_measurement(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=1),
-        primary_key: int
+        primary_key: int,
+        admin_token=Depends(AdminAuth())
 ):
     """
     Get a specific measurement by primary key
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
-
     measurement = db.session.query(Measurements).filter(Measurements.primary_key == primary_key).one_or_none()
     if not measurement:
         return JSONResponse({"error": 'Measurement with this id is not existed'}, 400)
@@ -78,17 +79,16 @@ async def get_one_measurement(
 
 @router.get('/list_measurements',
             responses={200: {"model": ListMeasurementsSchema},
-                       400: {"model": ErrorResponseSchema}})
+                       400: {"model": ErrorResponseSchema},
+                       403: {"model": ForbiddenSchema}})
 async def list_measurements(
-        admin_token: constr(strip_whitespace=True, to_upper=True, min_length=1),
         device_name: Optional[constr(strip_whitespace=True, min_length=3)] = None,
-        device_token: Optional[str] = None
+        device_token: Optional[str] = None,
+        admin_token=Depends(AdminAuth())
 ):
     """
     List all measurements related to specific device. Pass exactly one optional field: device_name or device_token.
     """
-    if admin_token != settings.ADMIN_TOKEN:
-        return JSONResponse({"error": 'Unauthorized. Given admin_token not accepted'}, 400)
 
     if (device_name is None) == (device_token is None):
         return JSONResponse({"error": 'Pass exactly one optional field: device_name or device_token.'}, 400)

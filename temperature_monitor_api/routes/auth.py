@@ -1,46 +1,36 @@
-from fastapi import HTTPException, Depends
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import HTTPException
+from fastapi.openapi.models import APIKey, APIKeyIn
+from fastapi.security.base import SecurityBase
+from starlette.requests import Request
+from starlette.status import HTTP_403_FORBIDDEN
+
 
 from temperature_monitor_api.settings import get_settings
 settings = get_settings()
 
-# app = FastAPI()
 
-basic_scheme = HTTPBasic()
+class AdminAuth(SecurityBase):
+    model = APIKey.construct(in_=APIKeyIn.header, name="admin_token")
+    scheme_name = "ADMIN_TOKEN"
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    async def __call__(self, request: Request):
+        token = request.headers.get("admin_token")
+        if token != settings.ADMIN_TOKEN:
+            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Unauthorized. Given ADMIN_TOKEN not accepted")
 
 
-def validate_credentials(credentials: HTTPBasicCredentials):
-    if settings.ADMIN_USERNAME != credentials.username:
-        return False
-    if settings.ADMIN_PASSWORD != credentials.password:
-        return False
-    return True
+if __name__ == '__main__':
+    import uvicorn
+    from fastapi import FastAPI
 
+    app = FastAPI()
+    from fastapi import Depends
 
-# # # Protect your API methods with the authentication scheme
-# @app.get("/secure", dependencies=[Depends(basic_scheme)])
-# def secure_route(auth_result: str = Depends(validate_credentials)):
-#     if not auth_result:
-#         raise HTTPException(status_code=401, detail="Invalid credentials")
-#     return {"message": f"Hello {auth_result}, you are authorized!"}
-#
-#
-# @app.post("/create", dependencies=[Depends(basic_scheme)])
-# def create_route(user: str = Depends(validate_credentials)):
-#     if not user:
-#         raise HTTPException(status_code=401, detail="Invalid credentials")
-#     return {"message": f"Hello {user}, you can create new data!"}
-#
-#
-# @app.put("/update/{id}", dependencies=[Depends(basic_scheme)])
-# def update_route(id: int, user: str = Depends(validate_credentials)):
-#     if not user:
-#         raise HTTPException(status_code=401, detail="Invalid credentials")
-#     return {"message": f"Hello {user}, you can update data with id {id}!"}
-#
-#
-# @app.delete("/delete/{id}", dependencies=[Depends(basic_scheme)])
-# def delete_route(id: int, user: str = Depends(validate_credentials)):
-#     if not user:
-#         raise HTTPException(status_code=401, detail="Invalid credentials")
-#     return {"message": f"Hello {user}, you can delete data with id {id}!"}
+    @app.get("/secure")
+    def secure_route(test: int, admin_token=Depends(AdminAuth())):
+        return {"message": f"Hello, you are authorized! {test}"}
+
+    uvicorn.run(app)
