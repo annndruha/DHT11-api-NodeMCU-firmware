@@ -1,3 +1,4 @@
+import math
 import logging
 from typing import Optional
 
@@ -34,6 +35,9 @@ def add_new_measurement(
     device: Devices = db.session.query(Devices).filter(Devices.device_token == device_token).one_or_none()
     if not device:
         return JSONResponse({"error": 'Device not existed or token is wrong.'}, 400)
+
+    if math.isnan(temperature) or math.isnan(humidity):
+        return JSONResponse({"error": 'Received NaN. Request skipped'}, 400)
 
     device_measurements = db.session.query(Measurements).filter(Measurements.device_id == device.device_id)
     last_measurement = device_measurements.order_by(Measurements.primary_key.desc()).first()
