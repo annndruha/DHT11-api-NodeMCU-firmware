@@ -1,7 +1,8 @@
 fastapi
 fastapi-sqlalchemy
 psycopg2-binary
-pydantic[dotenv]
+pydantic
+pydantic-settings
 uvicorn
 alembic
 SQLAlchemy
