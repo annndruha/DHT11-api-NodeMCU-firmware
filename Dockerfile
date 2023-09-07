@@ -11,9 +11,5 @@ COPY ./alembic.ini /app/alembic.ini
 COPY ./migrations /app/migrations/
 ADD static /app/static/
 WORKDIR /app
-EXPOSE 443/tcp
-EXPOSE 443/udp
-EXPOSE 80/tcp
-EXPOSE 80/udp
 
 COPY ./${APP_NAME} /app/${APP_NAME}
