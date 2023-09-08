@@ -12,4 +12,6 @@ COPY ./migrations /app/migrations/
 ADD static /app/static/
 WORKDIR /app
 
+RUN echo '#!/bin/bash \nalembic upgrade head' > /app/prestart.sh && chmod +x /app/prestart.sh
+
 COPY ./${APP_NAME} /app/${APP_NAME}
