@@ -1,5 +1,6 @@
 import math
 import logging
+import datetime
 from typing import Optional
 
 from pydantic import constr
@@ -40,7 +41,7 @@ def add_new_measurement(
         return JSONResponse({"error": 'Received NaN. Request skipped'}, 400)
 
     device_measurements = db.session.query(Measurements).filter(Measurements.device_id == device.device_id)
-    last_measurement = device_measurements.order_by(Measurements.primary_key.desc()).first()
+    last_measurement = device_measurements.order_by(Measurements.timestamp.desc()).first()
 
     if last_measurement is None:
         db.session.add(Measurements(device_id=device.device_id, temperature=temperature, humidity=humidity))
@@ -48,15 +49,17 @@ def add_new_measurement(
         db.session.commit()
         return {"detail": 'Added. Cool start!'}
 
-    # TODO: Add time check: if last measurement older that 15 min, record although the same values
-    # if last_measurement.temperature == temperature and last_measurement.humidity == humidity:
-    #     return {"detail": 'Same as last. Skip.'}
+    if last_measurement.temperature == temperature and last_measurement.humidity == humidity:
+        now_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3)))
+        delta = now_time.replace(tzinfo=None) - last_measurement.timestamp + datetime.timedelta(seconds=1)
+        if delta <= datetime.timedelta(minutes=1):
+            return {"detail": f'Skipped. Same as last and time <1min since last: {delta}'}
 
-    db.session.add(Measurements(device_id=device.device_id,
-                                temperature=last_measurement.temperature,
-                                humidity=last_measurement.humidity))
-    db.session.flush()
-    db.session.commit()
+    # db.session.add(Measurements(device_id=device.device_id,
+    #                             temperature=last_measurement.temperature,
+    #                             humidity=last_measurement.humidity))
+    # db.session.flush()
+    # db.session.commit()
     db.session.add(Measurements(device_id=device.device_id,
                                 temperature=temperature,
                                 humidity=humidity))
