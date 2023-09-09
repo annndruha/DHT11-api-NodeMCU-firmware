@@ -48,8 +48,9 @@ def add_new_measurement(
         db.session.commit()
         return {"detail": 'Added. Cool start!'}
 
-    if last_measurement.temperature == temperature and last_measurement.humidity == humidity:
-        return {"detail": 'Same as last. Skip.'}
+    # TODO: Add time check: if last measurement older that 15 min, record although the same values
+    # if last_measurement.temperature == temperature and last_measurement.humidity == humidity:
+    #     return {"detail": 'Same as last. Skip.'}
 
     db.session.add(Measurements(device_id=device.device_id,
                                 temperature=last_measurement.temperature,
