@@ -103,6 +103,18 @@ The api generate to you a *device_token*, which need to paste in every `POST /cr
 For save disk space reason, not every measurement are recorded on a database.
 It's recorded only **if temperature or humidity changes** from previous record for this device **or time since last record > 1 min**
 
+
+**Appending**
+```sql
+CREATE OR REPLACE VIEW temperature_monitor.device_2
+AS SELECT 
+    measurements.timestamp AS timestamp,
+    measurements.temperature AS temperature,
+    measurements.humidity AS humidity
+   FROM measurements
+  WHERE device_id = 2
+```
+
 [//]: # (If it happens, the api recorded into database are two records: 1&#41; last values of temp temperature )
 
 [//]: # (and humidity with new timestamp 2&#41; new values with timestamp a few milliseconds later.)
