@@ -9,6 +9,7 @@ RUN pip install -U -r /app/requirements.txt
 
 COPY ./alembic.ini /app/alembic.ini
 COPY ./migrations /app/migrations/
+COPY ./index.html /app/index.html
 ADD static /app/static/
 WORKDIR /app
 
