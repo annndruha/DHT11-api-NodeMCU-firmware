@@ -5,26 +5,27 @@ from pydantic import constr
 from fastapi import APIRouter, Depends
 from fastapi_sqlalchemy import db
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import load_only
 
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.models.base import Devices, Measurements
 from temperature_monitor_api.utils.utils import object_as_dict, generate_serial_number
 from temperature_monitor_api.routes.auth import AdminAuth
 from temperature_monitor_api.routes.schemas import SuccessResponseSchema, ErrorResponseSchema, ForbiddenSchema, \
-    DeviceSchema, ListDevicesSchema
+    DeviceCompleteSchema, ListDevicesSchema
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 settings = get_settings()
 
 
-@router.post('/create_device', responses={200: {"model": DeviceSchema},
+@router.post('/create_device', responses={200: {"model": DeviceCompleteSchema},
                                           400: {"model": ErrorResponseSchema},
                                           403: {"model": ForbiddenSchema}})
 async def create_new_device(
         device_name: constr(strip_whitespace=True, min_length=3),
         device_predefined_token: Optional[str] = None,
-        admin_token=Depends(AdminAuth())
+        _=Depends(AdminAuth())
 ):
     """
     Create a new device
@@ -43,15 +44,15 @@ async def create_new_device(
     return object_as_dict(device)
 
 
-@router.get('/get_device', responses={200: {"model": DeviceSchema},
+@router.get('/get_device', responses={200: {"model": DeviceCompleteSchema},
                                       400: {"model": ErrorResponseSchema},
                                       403: {"model": ForbiddenSchema}})
 async def get_specific_device(
         device_name: constr(strip_whitespace=True, min_length=3),
-        admin_token=Depends(AdminAuth())
+        _=Depends(AdminAuth())
 ):
     """
-    Get a specific device info
+    Get full info about device, include token
     """
     device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
     if not device:
@@ -63,29 +64,33 @@ async def get_specific_device(
 @router.get('/list_devices', responses={200: {"model": ListDevicesSchema},
                                         400: {"model": ErrorResponseSchema},
                                         403: {"model": ForbiddenSchema}})
-async def list_all_devices(
-        admin_token=Depends(AdminAuth())
-):
+async def list_all_devices_names():
     """
-    Get a list of devices with name's, id's, tokens, creation date's
+    Get a list of devices with only name's and creation date's.
+
+    If you want to get device token, execute /get_device
     """
-    devices: Devices = db.session.query(Devices)
-    devices_list = [object_as_dict(device) for device in devices.all()]
+
+    devices: Devices = db.session.query(Devices).all()
+    devices_list = [object_as_dict(device) for device in devices]
 
     if not len(devices_list):
-        return JSONResponse({"error": 'No in device found'}, 400)
+        return JSONResponse({"error": 'No in devices found'}, 400)
 
-    return {"devices": devices_list}
+    incomplete_devices_list = [{'device_name': device['device_name'], 'created_date': device['created_date']} for device
+                               in devices_list]
+
+    return {"devices": incomplete_devices_list}
 
 
-@router.patch('/update_device', responses={200: {"model": DeviceSchema},
+@router.patch('/update_device', responses={200: {"model": DeviceCompleteSchema},
                                            400: {"model": ErrorResponseSchema},
                                            403: {"model": ForbiddenSchema}})
 async def update_specific_device(
         device_name: constr(strip_whitespace=True, min_length=3),
         new_device_name: Optional[constr(strip_whitespace=True, min_length=3)] = None,
         new_device_token: Optional[str] = None,
-        admin_token=Depends(AdminAuth())
+        _=Depends(AdminAuth())
 ):
     """
     Update device name and/or device token
@@ -115,7 +120,7 @@ async def update_specific_device(
                                             403: {"model": ForbiddenSchema}})
 async def delete_specific_device(
         device_name: constr(strip_whitespace=True, min_length=3),
-        admin_token=Depends(AdminAuth())
+        _=Depends(AdminAuth())
 ):
     """
     Delete specific device and related measurements

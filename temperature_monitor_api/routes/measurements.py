@@ -7,13 +7,14 @@ from pydantic import constr
 from fastapi import APIRouter, Depends
 from fastapi_sqlalchemy import db
 from fastapi.responses import JSONResponse
+from sqlalchemy.sql import func
 
 from temperature_monitor_api.settings import get_settings
 from temperature_monitor_api.models.base import Devices, Measurements
 from temperature_monitor_api.utils.utils import object_as_dict
 from temperature_monitor_api.routes.auth import AdminAuth
 from temperature_monitor_api.routes.schemas import SuccessResponseSchema, ErrorResponseSchema, ForbiddenSchema, \
-    MeasurementSchema, ListMeasurementsSchema
+    MeasurementSchema, ListMeasurementsSchema, ListMeasurementsChatJsSchema
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,9 +30,9 @@ def add_new_measurement(
 ):
     """
     Add a new measurement item to database.
-    Warning: if temperature and humidity same as last point, it will not be added.
-    But when values change, it added two points: last with new timestamp and new.
-    This need to save disk space.
+
+    Warning: if measurement same as last measurement for device, it skips for save disk space reason.
+    But if last measurement older than 1 minute, it writes anyway.
     """
     device: Devices = db.session.query(Devices).filter(Devices.device_token == device_token).one_or_none()
     if not device:
@@ -55,11 +56,6 @@ def add_new_measurement(
         if delta <= datetime.timedelta(minutes=1):
             return {"detail": f'Skipped. Same as last and time <1min since last: {delta}'}
 
-    # db.session.add(Measurements(device_id=device.device_id,
-    #                             temperature=last_measurement.temperature,
-    #                             humidity=last_measurement.humidity))
-    # db.session.flush()
-    # db.session.commit()
     db.session.add(Measurements(device_id=device.device_id,
                                 temperature=temperature,
                                 humidity=humidity))
@@ -68,55 +64,45 @@ def add_new_measurement(
     return {"detail": 'Added'}
 
 
-@router.get('/get_measurement', responses={200: {"model": MeasurementSchema},
-                                           400: {"model": ErrorResponseSchema},
-                                           403: {"model": ForbiddenSchema}})
-async def get_one_measurement(
-        primary_key: int,
-        admin_token=Depends(AdminAuth())
-):
-    """
-    Get a specific measurement by primary key
-    """
-    measurement = db.session.query(Measurements).filter(Measurements.primary_key == primary_key).one_or_none()
-    if not measurement:
-        return JSONResponse({"error": 'Measurement with this id is not existed'}, 400)
-
-    return object_as_dict(measurement)
-
-
-@router.get('/list_measurements',
+@router.get('/measurements',
             responses={200: {"model": ListMeasurementsSchema},
                        400: {"model": ErrorResponseSchema},
                        403: {"model": ForbiddenSchema}})
-async def list_measurements(
-        device_name: Optional[constr(strip_whitespace=True, min_length=3)] = None,
-        device_token: Optional[str] = None,
-        admin_token=Depends(AdminAuth())
+async def list_measurements_plain(
+        device_name: constr(strip_whitespace=True, min_length=3),
+        limit: Optional[int] = None,
+        only_last_24_hours: Optional[bool] = True
 ):
     """
-    List all measurements related to specific device. Pass exactly one optional field: device_name or device_token.
+    List measurements related to specific device in plain format.
+
+    Sorted by ascending timestamp, but limit calculate reversed from last measurement.
     """
+    if device_name is None:
+        return JSONResponse({"error": 'Field device_name is required'}, 400)
 
-    if (device_name is None) == (device_token is None):
-        return JSONResponse({"error": 'Pass exactly one optional field: device_name or device_token.'}, 400)
-
-    if device_name is not None:
-        device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
-    else:
-        device: Devices = db.session.query(Devices).filter(Devices.device_token == device_token).one_or_none()
+    device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
     if not device:
         return JSONResponse({"error": 'Device with this name not existed'}, 400)
 
     measurements = db.session.query(Measurements).filter(Measurements.device_id == device.device_id)
-    measurements = measurements.order_by(Measurements.timestamp.asc()).all()
+    measurements = measurements.order_by(Measurements.timestamp.desc())
+
+    if only_last_24_hours:
+        shift = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))) - datetime.timedelta(days=1)
+        measurements = measurements.filter(Measurements.timestamp > shift)
+
+    if limit:
+        measurements = measurements.limit(limit)
+
+    measurements = measurements.all()
     if len(measurements) == 0:
         return JSONResponse({"error": 'Measurements for this device is empty'}, 400)
 
     timestamps = []
     temperatures = []
     humiditys = []
-    for measurement in measurements:
+    for measurement in reversed(measurements):
         timestamps.append(measurement.timestamp)
         temperatures.append(measurement.temperature)
         humiditys.append(measurement.humidity)
@@ -125,3 +111,61 @@ async def list_measurements(
             'timestamps': timestamps,
             'temperatures': temperatures,
             'humiditys': humiditys}
+
+
+@router.get('/measurements_chart_js',
+            responses={200: {"model": ListMeasurementsChatJsSchema},
+                       400: {"model": ErrorResponseSchema},
+                       403: {"model": ForbiddenSchema}})
+async def list_measurements_in_chart_js_format(
+        device_name: constr(strip_whitespace=True, min_length=3),
+        limit: Optional[int] = None,
+        only_last_24_hours: Optional[bool] = True
+):
+    """
+    List measurements related to specific device in Chart.js format.
+
+    Sorted by ascending timestamp, but limit calculate reversed from last measurement.
+
+    Point returned in specific format for chart.js performance: same points ignores, bat if value changes,
+    duplicate are spawn with same as previous datetime (For disable line not parallel with X/Y)
+    """
+    if device_name is None:
+        return JSONResponse({"error": 'Field device_name is required'}, 400)
+
+    device: Devices = db.session.query(Devices).filter(Devices.device_name == device_name).one_or_none()
+    if not device:
+        return JSONResponse({"error": 'Device with this name not existed'}, 400)
+
+    measurements = db.session.query(Measurements).filter(Measurements.device_id == device.device_id)
+    measurements = measurements.order_by(Measurements.timestamp.desc())
+
+    if only_last_24_hours:
+        shift = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))) - datetime.timedelta(days=1)
+        measurements = measurements.filter(Measurements.timestamp > shift)
+
+    if limit:
+        measurements = measurements.limit(limit)
+
+    measurements = measurements.all()
+    if len(measurements) == 0:
+        return JSONResponse({"error": 'Measurements for this device is empty'}, 400)
+
+    res = {"temperatures": [], "humiditys": []}
+    prev_point = measurements[-1]
+
+    def append_point(res, measurement):
+        temp_item = {'x': str(measurement.timestamp).replace('T', ' ').split('.')[0],
+                     'y': measurement.temperature}
+        hum_item = {'x': str(measurement.timestamp).replace('T', ' ').split('.')[0],
+                    'y': measurement.humidity}
+        res["temperatures"].append(temp_item)
+        res["humiditys"].append(hum_item)
+
+    for measurement in reversed(measurements):
+        if measurement.temperature != prev_point.temperature or measurement.humidity != prev_point.humidity:
+            prev_point.timestamp = measurement.timestamp
+            append_point(res, prev_point)
+            append_point(res, measurement)
+            prev_point = measurement
+    return res

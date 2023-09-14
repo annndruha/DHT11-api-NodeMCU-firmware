@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Literal
 
 from pydantic import constr, BaseModel
 
@@ -18,15 +18,20 @@ class ForbiddenSchema(BaseModel):
 
 
 # Device Schemas
-class DeviceSchema(BaseModel):
+class DeviceCompleteSchema(BaseModel):
     device_id: int = 42
     device_name: constr(strip_whitespace=True, min_length=3) = "my_device_name"
     device_token: str = "UPPERCASE_TOKEN"
     created_date: datetime
 
 
+class DeviceIncompleteSchema(BaseModel):
+    device_name: constr(strip_whitespace=True, min_length=3) = "my_device_name"
+    created_date: datetime
+
+
 class ListDevicesSchema(BaseModel):
-    devices: List[DeviceSchema]
+    devices: List[DeviceIncompleteSchema]
 
 
 # Measurements Schemas
@@ -43,3 +48,13 @@ class ListMeasurementsSchema(BaseModel):
     timestamps: List[datetime]
     temperatures: List[float]
     humiditys: List[float]
+
+
+class ChatJsItem(BaseModel):
+    x: str = "2023-09-14 14:57:17"
+    y: float = "25.1"
+
+
+class ListMeasurementsChatJsSchema(BaseModel):
+    temperatures: List[ChatJsItem]
+    humiditys: List[ChatJsItem]

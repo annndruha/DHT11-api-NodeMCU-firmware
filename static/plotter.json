@@ -1,0 +1,48 @@
+{
+  "type": "line",
+  "data": {
+    "datasets": []
+  },
+  "options": {
+    "spanGaps": true,
+    "animation": false,
+    "datasets": {
+      "line": {
+        "pointRadius": 0,
+        "tension": 0.1
+      }
+    },
+    "elements": {
+      "point": {
+        "radius": 0
+      }
+    },
+    "scales": {
+      "x": {
+        "type": "time",
+        "title": {
+          "display": true,
+          "text": "Time (Last 24 hours)"
+        },
+        "time": {
+          "parser": "yyyy-MM-dd HH:mm:ss",
+          "tooltipFormat": "HH:mm",
+          "unit": "second",
+          "round": "second",
+          "displayFormats": {
+            "second": "HH:mm"
+          }
+        },
+        "ticks": {
+          "source": "auto"
+        }
+      },
+      "y": {
+        "title": {
+          "display": true,
+          "text": "value"
+        }
+      }
+    }
+  }
+}
