@@ -16,6 +16,10 @@ body {
     text-shadow: 0 1px 0 rgba(0,0,0,.1);
 }
 
+.err-message{
+    color: #900;
+}
+
 a{
     background-color: lightseagreen;
     padding: 2px;
