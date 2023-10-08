@@ -155,9 +155,11 @@ async def list_measurements_in_chart_js_format(
     prev_point = measurements[-1]
 
     def append_point(res, measurement):
-        temp_item = {'x': str(measurement.timestamp).replace('T', ' ').split('.')[0],
+        datetime_str = (datetime.datetime.strptime(str(measurement.timestamp), '%Y-%m-%d %H:%M:%S.%f') +
+                        datetime.timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S")
+        temp_item = {'x': datetime_str,
                      'y': measurement.temperature}
-        hum_item = {'x': str(measurement.timestamp).replace('T', ' ').split('.')[0],
+        hum_item = {'x': datetime_str,
                     'y': measurement.humidity}
         res["temperatures"].append(temp_item)
         res["humiditys"].append(hum_item)

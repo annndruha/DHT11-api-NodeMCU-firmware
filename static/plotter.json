@@ -22,7 +22,7 @@
         "type": "time",
         "title": {
           "display": true,
-          "text": "Time (Last 24 hours)"
+          "text": "Moscow time (Last 24 hours)"
         },
         "time": {
           "parser": "yyyy-MM-dd HH:mm:ss",
