@@ -1,3 +1,9 @@
+# Archive repo
+
+**After I discovered [Home Assistant](https://www.home-assistant.io/), this repository became useless.**
+
+**See [tutorial how to add DHT11 to Home Assistant](./migrate_to_home_assistant/README.md).**
+
 # Temperature monitor API
 
 This is a pet project for study FastAPI and SQLAlchemy.
