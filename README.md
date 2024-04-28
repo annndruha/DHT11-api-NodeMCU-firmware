@@ -1,6 +1,6 @@
 # Archive repo
 
-**After I discovered [Home Assistant](https://www.home-assistant.io/), this repository became useless.**
+**After I discovered [Home Assistant](https://www.home-assistant.io/) this repository became useless.**
 
 **See [tutorial how to add DHT11 to Home Assistant](./migrate_to_home_assistant/README.md).**
 
